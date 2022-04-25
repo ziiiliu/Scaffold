@@ -49,14 +49,17 @@ BONDDIR_LIST = [
 ]
 
 class PairedDataset(Dataset):
-    def __init__(self, data_path, random_seed=1, augmentation="clustered_scaffold", scaffold_list_path=None):
+    def __init__(self, data_path, random_seed=1, augmentation="clustered", scaffold_list_path=None):
         super(Dataset, self).__init__()
         
         self.augmentation = augmentation
-        if augmentation == "clustered_scaffold":
+        if augmentation == "clustered":
+            from cluster_scaffolds import read_smiles
             self.smiles_data = read_smiles(data_path)
             self.smiles_dict = get_scaffold_dict(data_file=data_path)
+            print("SMILES Dictionary Acquired Successfully")
             self.x1s, self.x2s = self.generate_paired_input_indices(self.smiles_dict, random_seed)
+            print("Paired Input Indices Produced Successfully")
         elif augmentation == "generated":
             if not scaffold_list_path:
                 raise ValueError("Scaffold list txt file not provided.")
@@ -112,7 +115,7 @@ class PairedDataset(Dataset):
 
     def __getitem__(self, index):
 
-        if self.augmentation == "clustered_scaffold":
+        if self.augmentation == "clustered":
             mol1_ind, mol2_ind = self.x1s[index], self.x2s[index]
             # print(self.smiles_data[mol1_ind],self.smiles_data[mol2_ind])
             mol1, mol2 = Chem.MolFromSmiles(self.smiles_data[mol1_ind]), Chem.MolFromSmiles(self.smiles_data[mol2_ind])
@@ -219,13 +222,13 @@ class PairedDataset(Dataset):
         return data_1, data_2
 
     def __len__(self):
-        if self.augmentation == "clustered_scaffold":
+        if self.augmentation == "clustered":
             return len(self.x1s)
         elif self.augmentation == "generated":
             return len(self.mol1s)
 
 class PairedDatasetWrapper(object):
-    def __init__(self, batch_size, num_workers, valid_size, data_path, augmentation="clustered_scaffold"):
+    def __init__(self, batch_size, num_workers, valid_size, data_path, augmentation="clustered"):
         super(object, self).__init__()
         self.data_path = data_path
         self.batch_size = batch_size
@@ -234,7 +237,7 @@ class PairedDatasetWrapper(object):
         self.augmentation = augmentation
 
     def get_data_loaders(self):
-        if self.augmentation == "clustered_scaffold":
+        if self.augmentation == "clustered":
             train_dataset = PairedDataset(data_path=self.data_path)
         elif self.augmentation == "generated":
             train_dataset = PairedDataset(data_path=self.data_path, augmentation=self.augmentation, scaffold_list_path=self.data_path)

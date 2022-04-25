@@ -9,7 +9,8 @@ def read_smiles(data_path, exclude_header=True):
         csv_reader = csv.reader(csv_file, delimiter=',')
         for i, row in enumerate(csv_reader):
             if exclude_header and i == 0: continue
-            smiles = row[-1]
+            if not row: continue
+            smiles = row[0]
             smiles_data.append(smiles)
     return smiles_data
 

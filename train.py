@@ -40,7 +40,7 @@ class Scaffold(object):
         self.device = self._get_device()
         
         dir_name = datetime.now().strftime('%b%d_%H-%M-%S')
-        if config['aug'] == "clustered_scaffold":
+        if config['aug'] == "clustered":
             log_dir = os.path.join('ckpt', dir_name)
         elif config['aug'] == "generated":
             log_dir = os.path.join('ckpt2', dir_name)
@@ -171,6 +171,7 @@ class Scaffold(object):
 
             valid_loss = 0.0
             counter = 0
+            print(len(valid_loader))
             for (xis, xjs) in valid_loader:
                 xis = xis.to(self.device)
                 xjs = xjs.to(self.device)
@@ -188,7 +189,7 @@ def main():
     config = yaml.load(open("config.yaml", "r"), Loader=yaml.FullLoader)
     print(config)
 
-    if config['aug'] == 'clustered_scaffold' or config['aug'] == 'generated':
+    if config['aug'] == 'clustered' or config['aug'] == 'generated':
         from dataset.dataset import PairedDatasetWrapper
     # elif config['aug'] == 'subgraph':
     #     from dataset.dataset_subgraph import MoleculeDatasetWrapper
@@ -197,7 +198,7 @@ def main():
     else:
         raise ValueError('Not defined molecule augmentation!')
 
-    if config['aug'] == 'clustered_scaffold':
+    if config['aug'] == 'clustered':
         dataset = PairedDatasetWrapper(config['batch_size'], **config['dataset'])
     elif config['aug'] == 'generated':
         dataset = PairedDatasetWrapper(config['batch_size'], **config['dataset'], augmentation=config['aug'])
